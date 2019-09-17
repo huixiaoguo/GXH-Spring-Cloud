@@ -1,6 +1,6 @@
 ## Spring Cloud 服务注册与发现
 
-###注册中心
+### 注册中心
 
 多机中心化注册中心
 
@@ -22,25 +22,25 @@
 
 注册模式：异步
 
-######Eureka客户端配置api
+###### Eureka客户端配置api
 
-​		`EurekaClientConfigBean`
+	`EurekaClientConfigBean`
 
-######Eureka实例配置api
+###### Eureka实例配置api
 
-​		`EurekaInstanceConfigBean`
+	`EurekaInstanceConfigBean`
 
 [EUREKA REST API](https://github.com/Netflix/eureka/wiki/Eureka-REST-operations)
 
 > Greenwich.SR3存在的bug：
 >
-> ​	当启动的多个client端口采用0的时候，后启动的会覆盖掉之前启动的项目，无论有多少个，只有一个可以提供服务。
+> ​当启动的多个client端口采用0的时候，后启动的会覆盖掉之前启动的项目，无论有多少个，只有一个提供服务。
 
 > zookeeperAutoServiceRegistration
 >
 > eurekaAutoServiceRegistration
 >
-> 两个只有一个可以注册，发现可以发现多个。解决这问题需要关闭自动注册
+> 两个只有一个可以注册，但发现可以发现多个。解决这问题需要关闭自动注册
 
 | 注册中心  | CAP特性 | 推荐规模  |
 | --------- | ------- | --------- |
@@ -70,7 +70,7 @@ JAX-RS-JERSEY
 
 Spring Cloud Open Feign利用feign高扩展性，使用标准Spring Web MVC来声明客户端接口。Spring Cloud Open Feign通过Java接口的方式来声明REST服务提供者的元信息，通过调用Java接口的方式来实现http/rest通讯。
 
-> 实现细节：
+> 实现细节猜想：
 >
 > 1 Java接口与rest提供者如何映射？
 >
@@ -80,13 +80,13 @@ Spring Cloud Open Feign利用feign高扩展性，使用标准Spring Web MVC来�
 >
 > 4 Feign请求与相应的内容是如何序列化和反序列化到对应的pojo
 
-####Feign
+#### Feign
 
 1. 注解扩展性-Feign
 2. HTTP请求处理-Feign
 3. REST请求元信息解析-feign
 
-####OpenFeign
+#### OpenFeign
 
 1. 提供spring web mvc 注解处理
 2. 提供feign自动装配
@@ -203,19 +203,18 @@ public @interface EnableFeignClients {
 
 ```java
 @Override
-	public void registerBeanDefinitions(AnnotationMetadata metadata,			BeanDefinitionRegistry registry) {
-			        //注册默认配置
-					  				      registerDefaultConfiguration(metadata, registry);
-		        //注册所有标注@FeignClient配置类
+	public void registerBeanDefinitions(AnnotationMetadata metadata,BeanDefinitionRegistry registry) {
+		//注册默认配置
+		registerDefaultConfiguration(metadata, registry);
+		//注册所有标注@FeignClient配置类
 	        registerFeignClients(metadata, registry);
 	}
 ```
 
-#####注册默认配置
+##### 注册默认配置
 
 ```java
-private void registerDefaultConfiguration(AnnotationMetadata metadata,
-				                                          BeanDefinitionRegistry registry) {
+private void registerDefaultConfiguration(AnnotationMetadata metadata,BeanDefinitionRegistry registry) {
 		      Map<String, Object> defaultAttrs = metadata.getAnnotationAttributes(
                                          EnableFeignClients.class.getName(), true);
 			      if (defaultAttrs != null && defaultAttrs.containsKey("defaultConfiguration")) {
@@ -234,15 +233,13 @@ private void registerDefaultConfiguration(AnnotationMetadata metadata,
 ##### 注册标注了@FeignClient配置类
 
 ```java
-		//importingClassMetadata.getClassName() == 标注了@EnableFeignClients类的包名
+//importingClassMetadata.getClassName() == 标注了@EnableFeignClients类的包名
 //org.springframework.cloud.openfeign.FeignClientsRegistrar#getBasePackages
 if (basePackages.isEmpty()) {
-				         basePackages.add(
-					                          ClassUtils.getPackageName(importingClassMetadata.getClassName()));
-		}
-		//过滤掉除org.springframework.cloud.openfeign.FeignClientl类型的BeanDefinition
-		Set<BeanDefinition> candidateComponents = scanner
-								                                          .findCandidateComponents(basePackage);
+	basePackages.add(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
+}
+//过滤掉除org.springframework.cloud.openfeign.FeignClientl类型的BeanDefinition
+Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
 //读取@FeignClient注解的元数据（既@FeignClient注解的属性值）
 //example： @FeignClient("gxh-service-provider")
             //"value" -> "gxh-service-provider"
@@ -257,9 +254,7 @@ if (basePackages.isEmpty()) {
             //"configuration" -> {Class[0]@4376} 
             //"url" -> ""
             //"primary" -> {Boolean@4380} true
-Map<String, Object> attributes = annotationMetadata
-											                                 .getAnnotationAttributes(
-									                                                     FeignClient.class.getCanonicalName());
+Map<String, Object> attributes = annotationMetadata.getAnnotationAttributes(FeignClient.class.getCanonicalName());
 //注册
 registerFeignClient(registry, annotationMetadata, attributes);
 
@@ -278,15 +273,15 @@ registerFeignClient(registry, annotationMetadata, attributes);
 	      		    		   6 错误采取措施
 	      		    		   7 参数（options）
 	      		    		   8 InvocationHandlerFactory(创建代理的工厂)
-	              （默认实现ReflectiveFeign(可反射的)，FeignInvocationHandler(代理)）
-	             9 最终会走到feign.SynchronousMethodHandler#invoke
-	               //通信来了，接下来就是构建请求，构建响应喽
-	             	  RequestTemplate template = buildTemplateFromArgs.create(argv)
-				               //Spring Cloud 是通过桥接到SpringMvc上进行的Decoder操作
+	                                    （默认实现ReflectiveFeign(可反射的)，FeignInvocationHandler(代理)）
+	                                   9 最终会走到feign.SynchronousMethodHandler#invoke
+	                                   //通信来了，接下来就是构建请求，构建响应喽
+	             	                   RequestTemplate template = buildTemplateFromArgs.create(argv)
+				           //Spring Cloud 是通过桥接到SpringMvc上进行的Decoder操作
 调用时机：
       ·注入的时候
-      		 	   调用FeignClientFactoryBean#getObject
-      		 	   既	通过FactoryBeanRegistrySupport#doGetObjectFromFactoryBean取
+       调用FeignClientFactoryBean#getObject
+       既通过FactoryBeanRegistrySupport#doGetObjectFromFactoryBean取
 ```
 
 > 扩展知识：
@@ -295,11 +290,11 @@ registerFeignClient(registry, annotationMetadata, attributes);
 >
 > 两种获取元信息的方式
 >
-> ​	·AnnotationMetadataReadingVisitor  CGLB方式
+> 	·AnnotationMetadataReadingVisitor  CGLB方式
 >
->    ·StandardAnnotationMetadata Java标准反射方式
+>	·StandardAnnotationMetadata Java标准反射方式
 >
-> 
+> Spring Boot Actuator 默认会开启jmx和web endpoint
 >
 > Bean注入的实现（DI的过程）
 >
@@ -321,20 +316,12 @@ registerFeignClient(registry, annotationMetadata, attributes);
 >
 > ​				·getBean(Class)
 >
-> ​			3通过注解查找
+> ​		    3通过注解查找（低层次BeanFactory是没有的）
 >
-> ​				·ge tBeanWithAnnotation(Annotation)
+> ​				·getBeanWithAnnotation(Annotation)
 >
 > ​	FactoryBean两种功效（或者说是语义）：
 >
-> ​			1返回Bean的类型。getObjectType()
+> ​	       1返回Bean的类型。getObjectType()
 >
 > ​            2返回Bean的对象。getObject()	
-
-### Spring Cloud 整合
-
-### Spring Cloud Netflix Hystrix
-
-## Spring Boot Actuator
-
-默认会开启jmx和web endpoint
