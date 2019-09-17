@@ -325,3 +325,46 @@ registerFeignClient(registry, annotationMetadata, attributes);
 > ​	       1返回Bean的类型。getObjectType()
 >
 > ​            2返回Bean的对象。getObject()	
+
+
+### Open Feign大致流程梳理：
+
+1 Spring Web Mvc  注解元信息解析
+
+​			Feign.Builder 中的Contract有多种实现
+
+​			它干什么？就干这件事 List<MethodMetadata> parseAndValidatateMetadata(Class<?> targetType);
+
+​			语义：parseAndValidatateMetadata  解析和验证元信息
+
+​                       它是提供feign接口方法与请求元信息契约，解析出相关的方法元信息。
+
+​					1 feign内建实现 
+
+​					2 jax-rs 1/2实现
+
+​					3 spring web mvc实现（spring cloud open feign的扩展）
+
+2 通过@FeignClient生成的代理对象的方法调用实现http调用
+
+3 通过SpringDecoder实现response与接口返回类型的反序列化
+
+4 接下来进入负载均衡
+
+​			1 feign.Target将会构建一个以应用名称作为host的URL
+
+​			feign.SynchronousMethodHandler#executeAndDecode方法中Request request = targetRequest(template);这句代码
+
+​			2 response = client.execute(request, options); 来了来了。通过debug可以看到，Spring cloud 替换了client实现为org.springframework.cloud.openfeign.ribbon.LoadBalancerFeignClient。
+
+5 重试
+
+​		   Feign.Builder 中的Retryer会被spring cloud 在外部包装
+
+6 熔断 
+
+​          Feign.Builder派生类HystrixFeign
+
+## Spring Boot Actuator
+
+默认会开启jmx和web endpoint
